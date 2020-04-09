@@ -8,7 +8,6 @@ int main(void)
     char *response = "\n\n\r2534 is the best course in the curriculum!\r\n\n";
 
     // TODO: Declare the variables that main uses to interact with your state machine.
-    int i=0;
 bool finished = false;
 
     // Stops the Watchdog timer.
@@ -25,7 +24,7 @@ bool finished = false;
          EUSCI_A_UART_ONE_STOP_BIT,                    // One stop bit
          EUSCI_A_UART_MODE,                            // UART mode
          EUSCI_A_UART_OVERSAMPLING_BAUDRATE_GENERATION, // Oversampling
-         EUSCI_A_UART_8_BIT_LEN                         // 8 bit lenght
+         EUSCI_A_UART_8_BIT_LEN                         // 8 bit length
     };
 
 
@@ -67,8 +66,8 @@ bool finished = false;
         //       Make sure to reset the success variable after transmission.
         if (finished)
         {
-            i = 0;
-            while (response[i] != '\0')
+           int i = 0;
+            while (response[i] != '\0') //Loop terminates as soon as it checks for the null character in the string
             {
 
                 if (UART_getInterruptStatus(
@@ -76,10 +75,10 @@ bool finished = false;
                         EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG)
                 {
                     UART_transmitData(EUSCI_A0_BASE, response[i]);
-                    i++;
+                    i++;    //Traversing through the string one character at a time
                 }
             }
-            finished = false;
+            finished = false; //Resets the success variable
         }
     }
 }
@@ -108,7 +107,7 @@ bool charFSM(char rChar)
       case S25:
             if (rChar == '5')
                 currentState = S253;
-            else if(rChar == '2')
+            else if(rChar == '2') //This state helps to avoid overlapping 2's
                 currentState = S25;
             else
                 currentState = S2;
@@ -117,7 +116,7 @@ bool charFSM(char rChar)
         case S253:
             if (rChar == '3')
                 currentState = S2534;
-             else if(rChar == '2')
+             else if(rChar == '2')//This state helps to avoid internal 2's
                 currentState = S25;
              else
                  currentState = S2;

@@ -108,6 +108,8 @@ bool charFSM(char rChar)
       case S25:
             if (rChar == '5')
                 currentState = S253;
+            else if(rChar == '2')
+                currentState = S25;
             else
                 currentState = S2;
             break;

@@ -117,8 +117,10 @@ bool charFSM(char rChar)
         case S253:
             if (rChar == '3')
                 currentState = S2534;
-            else
-                currentState = S2;
+             else if(rChar == '2')
+                currentState = S25;
+             else
+                 currentState = S2;
             break;
 
         case S2534:

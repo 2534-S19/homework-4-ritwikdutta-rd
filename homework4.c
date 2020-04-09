@@ -54,29 +54,35 @@ bool finished = false;
         // TODO: If an actual character was received, echo the character to the terminal AND use it to update the FSM.
         //       Check the transmit interrupt flag prior to transmitting the character.
         if(rChar!=0xFF)
-        if (UART_getInterruptStatus (EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG)
         {
-            finished = charFSM(rChar);
-           if(!finished)
+            if (UART_getInterruptStatus (EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG)
+        {
             UART_transmitData(EUSCI_A0_BASE, rChar);
-
-
+            finished = charFSM(rChar);
+        }
+        }
 
         // TODO: If the FSM indicates a successful string entry, transmit the response string.
         //       Check the transmit interrupt flag prior to transmitting each character and moving on to the next one.
         //       Make sure to reset the success variable after transmission.
-            if(finished)
-                if (UART_getInterruptStatus(EUSCI_A0_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG)
-                        {
-                            for (i = 0; response[i]; i++)
-                                UART_transmitData(EUSCI_A0_BASE, response[i]);
-                        }
+        if (finished)
+        {
+            i = 0;
+            while (response[i] != '\0')
+            {
+
+                if (UART_getInterruptStatus(
+                        EUSCI_A0_BASE,
+                        EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG) == EUSCI_A_UART_TRANSMIT_INTERRUPT_FLAG)
+                {
+                    UART_transmitData(EUSCI_A0_BASE, response[i]);
+                    i++;
                 }
             }
-
+            finished = false;
+        }
     }
-
-
+}
 void initBoard()
 {
     WDT_A_hold(WDT_A_BASE);
@@ -85,48 +91,42 @@ void initBoard()
 // TODO: FSM for detecting character sequence.
 bool charFSM(char rChar)
 {
-    typedef enum { SX,S2, S25, S253, S2534} passcode_state_t;
+    typedef enum { S2,S25, S253,S2534} passcode_state_t;
 
     bool finished = false;
 
-    static passcode_state_t currentState = SX;
+    static passcode_state_t currentState = S2;
 
     switch (currentState) {
-       case SX:
+       case S2:
             if (rChar == '2')
 
-                currentState = S2;
-
-            break;
-
-      case S2:
-            if (rChar == '5')
                 currentState = S25;
-            else
-                currentState = SX;
+
             break;
 
-        case S25:
-            if (rChar == '3')
+      case S25:
+            if (rChar == '5')
                 currentState = S253;
             else
-                currentState = SX;
+                currentState = S2;
             break;
 
         case S253:
-            if (rChar == '4')
-             currentState = S2534;
+            if (rChar == '3')
+                currentState = S2534;
             else
-                currentState = SX;
+                currentState = S2;
             break;
 
         case S2534:
-            currentState = SX;
-            finished = true;
+            if (rChar == '4')
+             {
+                currentState = S2;
+                finished = true;
+             }
 
             break;
-
-
    }
 
     return finished;
